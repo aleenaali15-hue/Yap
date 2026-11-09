@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6a0bf">
+<title>YapYap</title>
+<style>
+:root{--bg:#fff;--side:#fff;--text:#2b1520;--muted:#8a7480;--accent:#ee7fa6;--sel:#fde0ea;--line:#f3dbe4;--surface:#fff;--mine:#f6a0bf;--mine-t:#3d1226;--theirs:#fff;--theirs-t:#2b1520;--chat-bg:#fdf3f7;--field:#fdf3f7;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+#chat[data-theme="midnight"]{--surface:#25161f;--text:#fbe9f1;--muted:#b58fa3;--accent:#f6a5c8;--mine:#e784ae;--mine-t:#2a0d1b;--theirs:#35202b;--theirs-t:#fbe9f1;--chat-bg:#140b11;--line:#3a2430;--field:#1d1118;color-scheme:dark}
+#chat[data-theme="sunset"]{--surface:#fffaf6;--text:#3a1f1a;--muted:#9a6f62;--accent:#ff8a65;--mine:linear-gradient(135deg,#ff8a65,#ff7aa2);--mine-t:#fff;--theirs:#ffe5d6;--theirs-t:#3a1f1a;--chat-bg:linear-gradient(180deg,#fff1e6,#ffe0e6);--line:#f5d9cc;--field:#fff1e6}
+#chat[data-theme="forest"]{--surface:#fafdfa;--text:#14291c;--muted:#5f7d68;--accent:#2e9e5b;--mine:#2e9e5b;--mine-t:#fff;--theirs:#fff;--theirs-t:#14291c;--chat-bg:#e6f1e9;--line:#cfe1d4;--field:#e6f1e9}
+#chat[data-theme="bubblegum"]{--surface:#fff;--text:#3a1030;--muted:#a0709a;--accent:#e83fb0;--mine:linear-gradient(135deg,#e83fb0,#b06bff);--mine-t:#fff;--theirs:#fbdcf0;--theirs-t:#3a1030;--chat-bg:linear-gradient(180deg,#ffe8f6,#efe4ff);--line:#f3cfe6;--field:#ffe8f6}
+#chat[data-theme="neon"]{--surface:#120f22;--text:#f1eaff;--muted:#8f84b5;--accent:#00f0c8;--mine:linear-gradient(135deg,#00c8a8,#7a3dff);--mine-t:#fff;--theirs:#1f1a38;--theirs-t:#f1eaff;--chat-bg:#07060f;--line:#2a2350;--field:#0b0918;color-scheme:dark}
+#chat[data-theme="mono"]{--surface:#fff;--text:#111;--muted:#777;--accent:#111;--mine:#111;--mine-t:#fff;--theirs:#fff;--theirs-t:#111;--chat-bg:#f2f2f2;--line:#ddd;--field:#f2f2f2}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+#app{height:100%;display:grid;grid-template-columns:minmax(300px,380px) 1fr;position:relative;overflow:hidden}
+#list{background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+#chat{background:var(--chat-bg);color:var(--text);display:flex;flex-direction:column;min-height:0;position:relative}
+.top{display:flex;align-items:center;gap:14px;padding:16px 18px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--surface) 85%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.logo{font-size:30px;font-weight:700;color:var(--accent);flex:1;letter-spacing:-1px}
+.ib{font-size:24px;width:42px;height:42px;display:grid;place-items:center;color:var(--accent)}
+#rows{overflow-y:auto;flex:1;padding:12px 10px}
+.row{display:flex;gap:14px;align-items:center;padding:12px;width:100%;text-align:left;border-radius:18px;margin-bottom:4px}
+.row.on{background:var(--sel)}
+.row .m{flex:1;min-width:0}
+.row b{display:block;font-size:18px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row small{display:block;color:var(--muted);font-size:16px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.av{width:56px;height:56px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:700;color:#fff;font-size:22px;overflow:hidden;background:var(--accent)}
+.av img{width:100%;height:100%;object-fit:cover}
+.av.sm{width:46px;height:46px;font-size:18px}
+.hd{flex:1;min-width:0}
+.hd b{display:block;font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hd small{color:var(--muted);font-size:15px}
+#back{display:none}
+#msgs{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:8px;min-height:0}
+.b{max-width:min(78%,560px);padding:10px 15px 8px;border-radius:22px;font-size:19px;line-height:1.3;overflow-wrap:anywhere;position:relative}
+.b.me{align-self:flex-end;background:var(--mine);color:var(--mine-t);border-bottom-right-radius:8px}
+.b.them{align-self:flex-start;background:var(--theirs);color:var(--theirs-t);border-bottom-left-radius:8px}
+.b .who{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:2px}
+.b img.ph{display:block;max-width:100%;max-height:420px;border-radius:14px;margin:4px 0}
+.b.img{padding:8px 8px 8px}
+.meta{font-size:14px;opacity:.75;margin-top:3px;display:flex;gap:6px;align-items:center}
+.me .meta{justify-content:flex-end}
+.dots{padding:0 2px;font-size:15px}
+.react{display:flex;justify-content:center;gap:22px;padding:8px;border-top:1px solid var(--line);background:var(--surface)}
+.react button{font-size:30px;padding:2px 8px}
+.comp{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border-top:1px solid var(--line)}
+.comp input[type=text]{flex:1;min-width:0;border:1px solid var(--line);background:var(--field);color:var(--text);border-radius:26px;padding:14px 20px;font:inherit;font-size:18px;outline:0}
+.comp select{border:1px solid var(--line);background:var(--field);color:var(--text);border-radius:14px;padding:12px 10px;font:inherit;font-size:16px}
+.send{background:var(--mine);color:var(--mine-t);border-radius:26px;padding:14px 22px;font-weight:700;font-size:18px}
+.empty{margin:auto;color:var(--muted);text-align:center;line-height:1.6;padding:30px}
+#ph{position:absolute;inset:0;display:grid;place-items:center;background:var(--chat-bg);color:var(--muted);z-index:2}
+#app.open #ph{display:none}
+.ov{position:fixed;inset:0;background:rgba(40,10,25,.45);display:none;align-items:center;justify-content:center;z-index:20;padding:16px}
+.ov.on{display:flex}
+.card{background:#fff;color:#2b1520;border-radius:24px;padding:22px;width:100%;max-width:420px;max-height:92%;overflow-y:auto}
+.card h3{margin-bottom:12px;font-size:20px}
+.card input{width:100%;border:1px solid #f3dbe4;background:#fdf3f7;border-radius:14px;padding:13px 14px;font:inherit;font-size:16px;margin-bottom:10px;outline:0}
+.card .go{background:#f6a0bf;color:#3d1226;width:100%;border-radius:14px;padding:13px;font-weight:700;margin-top:4px}
+.card .gh{width:100%;padding:11px;color:#8a7480}
+.err{color:#d6336c;font-size:14px;min-height:18px;margin-bottom:6px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px}
+.th{border:2px solid #f3dbe4;border-radius:14px;padding:8px;font-size:13px;font-weight:600;text-align:center}
+.th.sel{border-color:#ee7fa6}
+.sw{height:44px;border-radius:10px;margin-bottom:6px;display:flex;flex-direction:column;justify-content:center;gap:4px;padding:6px}
+.sw i{display:block;height:9px;border-radius:6px;width:60%}.sw i:last-child{align-self:flex-end}
+.prow{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+#epick{position:absolute;bottom:128px;left:70px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:10px;display:none;grid-template-columns:repeat(6,1fr);gap:4px;z-index:4;box-shadow:0 8px 30px rgba(0,0,0,.15)}
+#epick.on{display:grid}
+#epick button{font-size:26px;padding:4px}
+#toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:#2b1520;color:#fff;padding:10px 16px;border-radius:20px;font-size:14px;display:none;z-index:30;max-width:88%;text-align:center}
+#banner{display:none;text-align:center;font-size:14px;color:var(--muted);padding:8px 12px}
+@media (max-width:699px){
+  #app{display:block}
+  #list,#chat{position:absolute;inset:0;transition:transform .25s ease}
+  #chat{transform:translateX(100%)}
+  #app.open #chat{transform:none}
+  #app.open #list{transform:translateX(-20%)}
+  #back{display:grid}
+  #ph{display:none}
+  .b{font-size:17px}
+  .react button{font-size:26px}
+  .comp select{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <section id="list">
+    <div class="top"><div class="logo">YapYap</div>
+      <button class="ib" id="bNew" aria-label="New chat">＋</button>
+      <button class="ib" id="bGrp" aria-label="New group">👥</button>
+      <button class="ib" id="bSet" aria-label="Settings">⚙️</button></div>
+    <div id="banner"></div>
+    <div id="rows"></div>
+  </section>
+  <section id="chat">
+    <div id="ph"><div class="empty">Pick a chat or tap ＋<br>to start yapping 💬</div></div>
+    <div class="top">
+      <button class="ib" id="back" aria-label="Back">‹</button>
+      <div class="av sm" id="hav"></div>
+      <div class="hd"><b id="hn"></b><small id="hs"></small></div>
+    </div>
+    <div id="msgs"></div>
+    <div class="react" id="react"><button>👍</button><button>🌸</button><button>😂</button><button>😮</button><button>😢</button></div>
+    <div id="epick"></div>
+    <div class="comp">
+      <button class="ib" id="bCam" aria-label="Send photo" style="color:var(--text)">📷</button>
+      <button class="ib" id="bEmo" aria-label="Emoji" style="color:var(--text)">😭</button>
+      <form id="f" style="display:contents"><input type="text" id="in" placeholder="Type a message" autocomplete="off">
+      <select id="tm" aria-label="Timer"><option value="0">Timer: off</option><option value="10000">Timer: 10s</option><option value="60000">Timer: 1m</option><option value="3600000">Timer: 1h</option><option value="86400000">Timer: 1d</option></select>
+      <button class="send">Send</button></form>
+    </div>
+    <input type="file" id="file" accept="image/*" hidden>
+  </section>
+</div>
+
+<div class="ov" id="oSetup"><div class="card">
+  <h3>Welcome to YapYap 👋</h3>
+  <div class="prow"><div class="av" id="sAv">?</div><button class="gh" id="sPic" style="width:auto;padding:8px 12px;color:#ee7fa6;font-weight:600">Add photo</button></div>
+  <input id="sName" placeholder="Your name" maxlength="24">
+  <input id="sUser" placeholder="Username (letters, numbers, _ .)" maxlength="20" autocapitalize="none">
+  <div class="err" id="sErr"></div>
+  <button class="go" id="sGo">Start yapping</button>
+</div></div>
+
+<div class="ov" id="oNew"><div class="card">
+  <h3>New chat</h3>
+  <input id="nUser" placeholder="Friend's @username" autocapitalize="none">
+  <div class="err" id="nErr"></div>
+  <button class="go" id="nGo">Start chat</button><button class="gh" data-close>Cancel</button>
+</div></div>
+
+<div class="ov" id="oGrp"><div class="card">
+  <h3>New group</h3>
+  <input id="gName" placeholder="Group name" maxlength="30">
+  <input id="gUsers" placeholder="@usernames, separated by commas" autocapitalize="none">
+  <div class="err" id="gErr"></div>
+  <button class="go" id="gGo">Create group</button><button class="gh" data-close>Cancel</button>
+</div></div>
+
+<div class="ov" id="oSet"><div class="card">
+  <h3>Chat theme</h3>
+  <div class="grid" id="grid"></div>
+  <p id="thNote" style="font-size:13px;color:#8a7480;margin-bottom:14px"></p>
+  <h3>Your profile</h3>
+  <div class="prow"><div class="av" id="pAv"></div><button class="gh" id="pPic" style="width:auto;padding:8px 12px;color:#ee7fa6;font-weight:600">Change photo</button></div>
+  <input id="pName" placeholder="Your name" maxlength="24">
+  <button class="go" id="pSave">Save</button><button class="gh" data-close>Close</button>
+</div></div>
+<div id="toast"></div>
+
+<script>
+var THEMES=[["rose","Pastel Pink","#f6a0bf","#fff"],["midnight","Midnight","#e784ae","#35202b"],["sunset","Sunset","#ff8a65","#ffe5d6"],["forest","Forest","#2e9e5b","#e6f1e9"],["bubblegum","Bubblegum","#e83fb0","#fbdcf0"],["neon","Neon","#00c8a8","#1f1a38"],["mono","Mono","#111","#f2f2f2"]];
+var EMO=["😭","😂","🥹","😍","😎","🤔","🙄","😴","🤣","😅","🥰","😤","💀","🔥","❤️","💕","🎉","👀","🙏","✨","🤡","😈","🫶","🥲"];
+var $=function(i){return document.getElementById(i)};
+var LS={get:function(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+var themes=LS.get("yy3themes",{});
+var db=null,user=null,meId=null,me=null,people={},rooms={},lastUn={},cur=null,msgUn=null,msgs=[],setupPhoto=null,delArm=null;
+function toast(t){var e=$("toast");e.textContent=t;e.style.display="block";clearTimeout(toast.t);toast.t=setTimeout(function(){e.style.display="none"},3200)}
+function hash(s){var h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return Math.abs(h)}
+var GR=["#f48fb1,#f8bbd0","#ff8a65,#ffab91","#b39ddb,#ce93d8","#80cbc4,#a5d6a7","#ffcc80,#ffab91","#f06292,#ba68c8"];
+function mkAv(el,p){el.innerHTML="";el.style.background="";
+  if(p&&p.photo){var i=document.createElement("img");i.src=p.photo;i.alt="";el.appendChild(i)}
+  else{var n=(p&&(p.name||p.u))||"?";el.textContent=n.trim().charAt(0).toUpperCase();el.style.background="linear-gradient(135deg,"+GR[hash(n)%GR.length]+")"}}
+function mkGroupAv(el,n){el.innerHTML="";el.textContent="👥";el.style.background="linear-gradient(135deg,"+GR[hash(n)%GR.length]+")"}
+function clock(ts){return new Date(ts).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",hour12:true}).toLowerCase()}
+function shrink(file,max,q){return new Promise(function(res,rej){var r=new FileReader();r.onerror=rej;r.onload=function(){var im=new Image();im.onerror=rej;im.onload=function(){
+  var s=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);
+  c.getContext("2d").drawImage(im,0,0,c.width,c.height);var d=c.toDataURL("image/jpeg",q);while(d.length>230000&&q>.3){q-=.15;d=c.toDataURL("image/jpeg",q)}res(d)};im.src=r.result};r.readAsDataURL(file)})}
+function pick(cb){var f=$("file");f.value="";f.onchange=function(){if(f.files[0])cb(f.files[0])};f.click()}
+async function person(id){if(people[id])return people[id];try{var s=await db.doc("people/"+id).get();people[id]=s.exists?Object.assign({id:id},s.data()):{id:id,name:"Friend",u:"friend"}}catch(e){people[id]={id:id,name:"Friend",u:"friend"}}return people[id]}
+function roomName(r){return r.k==="g"?r.name:(people[r.w]||{}).name||"Friend"}
+function renderList(){
+  var ids=Object.keys(rooms).sort(function(a,b){return((rooms[b].last||{}).ts||0)-((rooms[a].last||{}).ts||0)});
+  var box=$("rows");box.innerHTML="";
+  if(!ids.length){var p=document.createElement("p");p.className="empty";p.textContent="No chats yet. Tap ＋ to message a friend by their @username.";box.appendChild(p)}
+  ids.forEach(function(id){var r=rooms[id],b=document.createElement("button");b.className="row"+(cur===id?" on":"");
+    var a=document.createElement("div");a.className="av";r.k==="g"?mkGroupAv(a,r.name||"g"):mkAv(a,people[r.w]);
+    var m=document.createElement("div");m.className="m";var n=document.createElement("b"),s=document.createElement("small");
+    n.textContent=roomName(r);var l=r.last;
+    s.textContent=l?((l.u===meId?"You: ":"")+(l.img&&!l.t?"📷 Photo":l.t)):"Say hi 👋";
+    m.appendChild(n);m.appendChild(s);b.appendChild(a);b.appendChild(m);b.onclick=function(){openRoom(id)};box.appendChild(b)})}
+function applyTheme(){var t=cur?themes[cur]:null;t&&t!=="rose"?$("chat").setAttribute("data-theme",t):$("chat").removeAttribute("data-theme")}
+function renderMsgs(){
+  var box=$("msgs"),near=box.scrollHeight-box.scrollTop-box.clientHeight<100,now=Date.now(),r=rooms[cur];box.innerHTML="";
+  var live=msgs.filter(function(m){return!m.exp||m.exp>now});
+  if(!live.length){var p=document.createElement("p");p.className="empty";p.textContent="No messages yet. Say hi 👋";box.appendChild(p)}
+  live.forEach(function(m){var me_=m.u===meId,d=document.createElement("div");d.className="b "+(me_?"me":"them")+(m.img?" img":"");
+    if(!me_&&r&&r.k==="g"){var w=document.createElement("div");w.className="who";w.textContent=(people[m.u]||{}).name||"Friend";d.appendChild(w)}
+    if(m.img){var i=document.createElement("img");i.className="ph";i.src=m.img;i.alt="Photo";d.appendChild(i)}
+    if(m.t){var t=document.createElement("div");t.textContent=m.t;t.style.padding=m.img?"4px 8px 0":"0";d.appendChild(t)}
+    var mt=document.createElement("div");mt.className="meta";if(m.img)mt.style.padding="0 8px";
+    var tm=document.createElement("span");tm.textContent=clock(m.ts)+(me_?" ✓":"");mt.appendChild(tm);
+    if(me_){var x=document.createElement("button");x.className="dots";x.textContent=delArm===m.id?"🗑 Delete?":"···";x.onclick=function(){if(delArm===m.id){delArm=null;db.doc("rooms/"+cur+"/msgs/"+m.id).delete().catch(function(){})}else{delArm=m.id;renderMsgs();setTimeout(function(){if(delArm===m.id){delArm=null;renderMsgs()}},3000)}};mt.appendChild(x)}
+    else{var x2=document.createElement("span");x2.className="dots";x2.textContent="···";mt.appendChild(x2)}
+    d.appendChild(mt);box.appendChild(d)});
+  if(near||!box.dataset.i){box.scrollTop=box.scrollHeight;box.dataset.i=1}}
+async function openRoom(id){
+  var r=rooms[id];if(!r)return;cur=id;$("app").classList.add("open");
+  if(r.k==="g"){$("hn").textContent=r.name;$("hs").textContent=(r.m||[]).length+" members";mkGroupAv($("hav"),r.name||"g");await Promise.all((r.m||[]).map(person))}
+  else{var p=await person(r.w);$("hn").textContent=p.name;$("hs").textContent="@"+p.u;mkAv($("hav"),p)}
+  applyTheme();msgs=[];$("msgs").innerHTML="";delete $("msgs").dataset.i;renderList();
+  if(msgUn)msgUn();
+  msgUn=db.collection("rooms/"+id+"/msgs").orderBy("ts").limit(300).onSnapshot(function(s){
+    msgs=s.docs.map(function(d){return Object.assign({id:d.id},d.data())});
+    msgs.forEach(function(m){if(m.exp&&m.exp<Date.now()&&m.u===meId)db.doc("rooms/"+id+"/msgs/"+m.id).delete().catch(function(){})});renderMsgs()},
+    function(e){toast("Can't load chat ("+e.code+")")})}
+function closeRoom(){$("app").classList.remove("open");if(msgUn){msgUn();msgUn=null}cur=null;applyTheme();renderList()}
+$("back").onclick=closeRoom;
+setInterval(function(){if(cur&&msgs.some(function(m){return m.exp}))renderMsgs()},5000);
+function send(o){if(!cur||!db){return}
+  var d=Object.assign({u:meId,ts:Date.now()},o),tm=+$("tm").value;if(tm)d.exp=d.ts+tm;
+  db.collection("rooms/"+cur+"/msgs").add(d).catch(function(){toast("Couldn't send. You may need Contributor access.")})}
+$("f").onsubmit=function(e){e.preventDefault();var v=$("in").value.trim();if(!v)return;$("in").value="";send({t:v})};
+$("react").onclick=function(e){var b=e.target.closest("button");if(b)send({t:b.textContent})};
+$("bCam").onclick=function(){pick(async function(f){try{send({t:"",img:await shrink(f,800,.72)})}catch(e){toast("Couldn't read that image")}})};
+$("epick").innerHTML=EMO.map(function(e){return"<button type=button>"+e+"</button>"}).join("");
+$("bEmo").onclick=function(){$("epick").classList.toggle("on")};
+$("epick").onclick=function(e){var b=e.target.closest("button");if(b){$("in").value+=b.textContent;$("in").focus()}};
+function show(id){$(id).classList.add("on")}function hide(id){$(id).classList.remove("on")}
+document.querySelectorAll("[data-close]").forEach(function(b){b.onclick=function(){b.closest(".ov").classList.remove("on")}});
+document.querySelectorAll(".ov").forEach(function(o){o.onclick=function(e){if(e.target===o&&o.id!=="oSetup")o.classList.remove("on")}});
+function needDb(){if(!db||!meId||!me){toast("Open from your Claude link and sign in first");return false}return true}
+$("bNew").onclick=function(){if(needDb()){$("nUser").value="";$("nErr").textContent="";show("oNew")}};
+$("bGrp").onclick=function(){if(needDb()){$("gName").value="";$("gUsers").value="";$("gErr").textContent="";show("oGrp")}};
+function cleanU(v){return v.trim().replace(/^@/,"").toLowerCase()}
+async function findUser(u){var s=await db.doc("users/"+u).get();return s.exists?s.data().id:null}
+$("nGo").onclick=async function(){var u=cleanU($("nUser").value);if(!u)return;$("nErr").textContent="";
+  try{var id=await findUser(u);if(!id){$("nErr").textContent="No one with that username.";return}
+    if(id===meId){$("nErr").textContent="That's you!";return}
+    var rid=[meId,id].sort().join("_");
+    await db.doc("inbox/"+meId+"/items/"+rid).set({k:"dm",w:id});await db.doc("inbox/"+id+"/items/"+rid).set({k:"dm",w:meId});
+    hide("oNew");await person(id);if(!rooms[rid])rooms[rid]={k:"dm",w:id};openRoom(rid)}
+  catch(e){$("nErr").textContent="Couldn't start the chat."}};
+$("gGo").onclick=async function(){var n=$("gName").value.trim(),us=$("gUsers").value.split(",").map(cleanU).filter(Boolean);$("gErr").textContent="";
+  if(!n||!us.length){$("gErr").textContent="Add a name and at least one friend.";return}
+  try{var ids=[meId];for(var i=0;i<us.length;i++){var id=await findUser(us[i]);if(!id){$("gErr").textContent="Can't find @"+us[i];return}if(ids.indexOf(id)<0)ids.push(id)}
+    var rid="g"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+    for(var j=0;j<ids.length;j++)await db.doc("inbox/"+ids[j]+"/items/"+rid).set({k:"g",name:n,m:ids});
+    hide("oGrp");await Promise.all(ids.map(person));if(!rooms[rid])rooms[rid]={k:"g",name:n,m:ids};openRoom(rid)}
+  catch(e){$("gErr").textContent="Couldn't create the group."}};
+function drawGrid(){var s=cur&&themes[cur]||"rose",h="";
+  THEMES.forEach(function(t){h+='<button class="th'+(t[0]===s?" sel":"")+'" data-t="'+t[0]+'"><div class="sw" style="background:'+t[3]+';border:1px solid #f3dbe4"><i style="background:'+t[3]+';filter:brightness(.88)"></i><i style="background:'+t[2]+'"></i></div>'+t[1]+'</button>'});
+  $("grid").innerHTML=h;$("thNote").textContent=cur?"Applies to this chat only.":"Open a chat first to theme it."}
+$("bSet").onclick=function(){drawGrid();if(me){mkAv($("pAv"),me);$("pName").value=me.name}show("oSet")};
+$("grid").onclick=function(e){var b=e.target.closest(".th");if(!b||!cur)return;themes[cur]=b.dataset.t;LS.set("yy3themes",themes);applyTheme();drawGrid()};
+$("pPic").onclick=function(){pick(async function(f){try{me.photo=await shrink(f,160,.8);mkAv($("pAv"),me)}catch(e){}})};
+$("pSave").onclick=async function(){if(!me)return;var n=$("pName").value.trim();if(n)me.name=n;
+  try{await db.doc("people/"+meId).set({u:me.u,name:me.name,photo:me.photo||null});people[meId]=Object.assign({id:meId},me);toast("Saved");hide("oSet")}catch(e){toast("Couldn't save")}};
+$("sPic").onclick=function(){pick(async function(f){try{setupPhoto=await shrink(f,160,.8);mkAv($("sAv"),{photo:setupPhoto})}catch(e){}})};
+$("sGo").onclick=async function(){var n=$("sName").value.trim(),u=cleanU($("sUser").value);$("sErr").textContent="";
+  if(!n||!/^[a-z0-9_.]{3,20}$/.test(u)){$("sErr").textContent="Add your name and a username (3–20 letters, numbers, _ or .).";return}
+  try{var ex=await findUser(u);if(ex&&ex!==meId){$("sErr").textContent="That username is taken.";return}
+    await db.doc("users/"+u).set({id:meId});me={u:u,name:n,photo:setupPhoto};await db.doc("people/"+meId).set({u:u,name:n,photo:setupPhoto||null});
+    people[meId]=Object.assign({id:meId},me);hide("oSetup");startInbox()}
+  catch(e){$("sErr").textContent="Couldn't save. You may need Contributor access."}};
+function startInbox(){
+  db.collection("inbox/"+meId+"/items").onSnapshot(async function(s){
+    for(var ch of s.docChanges()){var id=ch.doc.id;
+      if(ch.type==="removed"){if(lastUn[id])lastUn[id]();delete lastUn[id];delete rooms[id];continue}
+      var d=ch.doc.data(),old=rooms[id];rooms[id]=Object.assign({last:old&&old.last},d);
+      if(d.k==="dm")await person(d.w);else await Promise.all((d.m||[]).map(person));
+      if(!lastUn[id]){(function(id){lastUn[id]=db.collection("rooms/"+id+"/msgs").orderBy("ts","desc").limit(1).onSnapshot(function(q){if(rooms[id]){rooms[id].last=q.docs[0]?q.docs[0].data():null;renderList()}})})(id)}}
+    renderList()})}
+renderList();
+(async function(){
+  try{if(typeof claude!=="undefined"){db=await claude.use("db");user=await claude.use("user")}}catch(e){}
+  if(user){try{meId=await user.id()}catch(e){}}
+  var b=$("banner");
+  if(!db||!meId){b.textContent="Open this from your Claude link and sign in to chat with friends.";b.style.display="block";return}
+  try{var s=await db.doc("people/"+meId).get();
+    if(s.exists){me=s.data();people[meId]=Object.assign({id:meId},me);startInbox()}
+    else{try{var v=await user.me();if(v&&v.name)$("sName").value=v.name}catch(e){}mkAv($("sAv"),{name:"?"});show("oSetup")}}
+  catch(e){b.textContent="Couldn't reach the chat server.";b.style.display="block"}
+})();
+</script>
+</body>
+</html>
